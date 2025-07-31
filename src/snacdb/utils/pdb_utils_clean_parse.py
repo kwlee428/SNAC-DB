@@ -976,33 +976,56 @@ class PDBUtils:
         else:
             return False
         
-    def extract_structure_to_dict(self, structure, add_header=False):
+    def extract_structure_to_dict(
+        self,
+        structure,
+        add_header: bool = False,
+        model_to_extract: int = 0,
+        custom_header: dict = None
+    ) -> dict:
         """
-        Extracts the structure into a dictionary with detailed chain information.
+        Extract a Biopython Structure or Model into a nested dictionary with per-chain sequence
+        and coordinate/B-factor arrays.
 
-        For each chain in the structure:
-        - Extracts the sequence.
-        - Builds an atom37 NumPy array of size (len(sequence), 37, 3) with atomic coordinates.
-        - Builds a b_factor NumPy array of size (len(sequence), 37) with B-factors.
-        - Inserts NaN where atomic data is unavailable.
+        Parameters
+        ----------
+        structure : Bio.PDB.Structure.Structure or Bio.PDB.Model.Model
+            The input Structure object (assumed cleaned) or a single Model. If a Structure
+            containing multiple models is passed, the model at index `model_to_extract` will
+            be used.
+        add_header : bool, default=False
+            If True, include the structure’s header (or `custom_header`) under the key 'header'.
+        model_to_extract : int, default=0
+            Index of the model to extract when `structure` is a multi-model Structure.
+        custom_header : dict or None, default=None
+            Optional header to use instead of `structure.header` when `add_header` is True.
 
-        :param structure: Biopython Structure object (assumed cleaned).
-        :return: Dictionary with chain IDs as keys and sub-dictionaries containing:
-                 - 'seq': Amino acid sequence (string).
-                 - 'atom37': NumPy array (shape: [len(sequence), 37, 3]).
-                 - 'b_factor': NumPy array (shape: [len(sequence), 37]).
+        Returns
+        -------
+        dict
+            A mapping from chain ID (str) to a dict with keys:
+              - 'seq'      : str
+                    One-letter amino acid sequence (unknown residues as 'X').
+              - 'atom37'   : np.ndarray, shape (N, 37, 3)
+                    Cartesian coordinates for up to 37 heavy atoms per residue; NaN where
+                    atoms are missing.
+              - 'b_factor' : np.ndarray, shape (N, 37)
+                    Corresponding B-factors; NaN where not available.
+            If `add_header` is True, also includes the key:
+              - 'header'   : dict
+                    The structure header or `custom_header`.
         """
         # Map residue and atom types to indices
         atom37_size = len(self.atom_order)  # Total number of standard heavy atoms
 
         # Initialize the result dictionary
         structure_dict = {}
-
+        
+        # Handle multi-model Structure
         if type(structure) is Bio.PDB.Structure.Structure:
-            print([model for model in structure.get_models()])
-            structure = structure[0]
+            print(f'Contains multiple models, {len([model for model in structure.get_models()])} total and extracting model number {model_to_extract}!')
+            structure = structure[model_to_extract]
 
-        print(type(structure), [chain for chain in structure])
         for chain in structure:
             chain_id = chain.id
             residues = list(chain)
@@ -1036,7 +1059,14 @@ class PDBUtils:
             }
 
         if add_header:
-            structure_dict.update({'header': structure.header})
+            if custom_header is None:
+                try:
+                    header = structure.xtra.get('header', {})
+                except Exception as e:
+                    print('Not able to extract the header!', e)
+            else:
+                header = custom_header
+            structure_dict.update({'header': header})
         return structure_dict
     
     def save_npy_file(self, structure_dict, output_file):
