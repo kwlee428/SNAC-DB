@@ -71,7 +71,7 @@ if [ $keep_all_data = "True" ]; then  # runs the pipeline as three separate scri
 
     if [ $redundant = "False" ]; then
         # the nonredundant data is saved to a new directory so the redundant complexes are still saved in the *_filter directory
-        python $pipeline_dir/src/snacdb/curation_redundant.py -d "${input_dir}_filter" -c "${input_dir}_outputs_multichain_filter.csv" -m True > "$logs/eliminate_redundant_complexes.log" 2>&1
+        python $pipeline_dir/src/snacdb/curation_redundant.py -d "${input_dir}_filter" -c "${input_dir}_outputs_multichain_filter.csv" --tm_threshold 0.9999 -m > "$logs/eliminate_redundant_complexes.log" 2>&1
         # reporting whether this section ran successfully
         exit_code_redundant_1=$?
         if [ $exit_code_redundant_1 -eq 0 ]; then
@@ -94,7 +94,7 @@ else
 
     if [ $redundant = "False" ]; then  # check to see if redundant data should be kept
         # is specified that redundant data is not saved
-        python $pipeline_dir/src/snacdb/curation_redundant.py -d "${input_dir}_curated" -c "${input_dir}_curation_summary.csv" > "$logs/eliminate_redundant_complexes.log" 2>&1
+        python $pipeline_dir/src/snacdb/curation_redundant.py -d "${input_dir}_curated" -c "${input_dir}_curation_summary.csv" --tm_threshold 0.9999 > "$logs/eliminate_redundant_complexes.log" 2>&1
 
         # reporting whether this section ran successfully
         exit_code_redundant_2=$?

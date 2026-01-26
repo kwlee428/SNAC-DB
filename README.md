@@ -11,7 +11,7 @@ Specifically, the repository supports:
 
 All pipelines are orchestrated via bash scripts, but underlying Python modules provide granular control for customization and debugging.
 
-#### The curated version of the ready-to-use SNAC-DB dataset is available at: [https://zenodo.org/records/16920203](https://zenodo.org/records/16920203)
+#### The curated version of the ready-to-use SNAC-DB dataset is available at: [https://doi.org/10.5281/zenodo.15870002](https://doi.org/10.5281/zenodo.15870002)
 
 ---
 
@@ -335,7 +335,7 @@ As mentioned above, the keywords Frame and Replicate are optional keywords in th
 
 4. **Remove Redundancies**
 
-    Aim: Eliminates duplicate complexes based on contact map comparison.
+    Aim: Eliminates duplicate complexes based on foldseek clustering.
 
     Output:
     - Updated complex directory and summary CSV
